@@ -1,4 +1,7 @@
-﻿using CourseLibrary.API.Services;
+﻿using AutoMapper;
+using CourseLibrary.API.Helpers;
+using CourseLibrary.API.Models;
+using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,19 +14,36 @@ namespace CourseLIbrary.API.Controllers
     [Route("api/authors")]
     public class AuthorsController : ControllerBase
     {
-        private ICourseLibraryRepository _courseLibraryRepository;
+        private readonly ICourseLibraryRepository _courseLibraryRepository;
+        private readonly IMapper _mapper;
 
-        public AuthorsController(ICourseLibraryRepository courseLibraryRepostory)
+        public AuthorsController(ICourseLibraryRepository courseLibraryRepository,
+            IMapper mapper)
         {
-            _courseLibraryRepository = courseLibraryRepostory ??
-               throw new ArgumentNullException(nameof(courseLibraryRepostory));
+            _courseLibraryRepository = courseLibraryRepository ??
+                throw new ArgumentNullException(nameof(courseLibraryRepository));
+            _mapper = mapper ??
+                throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet()]
-        public IActionResult GetAuthors()
-        {
+        [HttpHead]
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+        {            
             var authorsFromRepo = _courseLibraryRepository.GetAuthors();
-            return Ok(authorsFromRepo);
+            return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
+
+            //foreach (var author in authorsFromRepo)
+            //{
+            //    authors.Add(new AuthorDto()
+            //    {
+            //        Id = author.Id,
+            //        Name = $"{author.FirstName} {author.LastName}",
+            //        MainCategory = author.MainCategory,
+            //        Age = author.DateOfBirth.GetCurrentAge()
+            //    });
+            //}
+            
         }
 
         [HttpGet("{authorId}")]
@@ -36,7 +56,7 @@ namespace CourseLIbrary.API.Controllers
                 return NotFound();
             }
             
-            return Ok(authorFromRepo);
+            return Ok(_mapper.Map<AuthorDto>(authorFromRepo));
         }
     }    
 }
